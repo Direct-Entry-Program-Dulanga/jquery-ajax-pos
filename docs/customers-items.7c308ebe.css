@@ -1,0 +1,2 @@
+.table tbody td:first-child,.table tbody td:last-child,.table thead th:first-child{text-align:center}.table{margin-bottom:0;background-color:#fff}.table thead{background-color:rgba(0,0,0,.03);color:#000}.table tbody tr{cursor:pointer}.table tbody td:last-child .fas{font-size:1.5rem;color:orange}.table tbody td:last-child:hover .fas{color:red}.table tfoot nav{display:flex;justify-content:center}.table tfoot nav>ul{margin-bottom:0}
+/*# sourceMappingURL=/pos-app/customers-items.7c308ebe.css.map */

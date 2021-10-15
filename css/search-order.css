@@ -1,0 +1,9 @@
+#tblItems thead th:nth-child(3),
+#tblItems tbody td:nth-child(3){
+    text-align: center;
+}
+
+#tblItems thead th:nth-child(4),
+#tblItems tbody td:nth-child(4){
+    text-align: right;
+}

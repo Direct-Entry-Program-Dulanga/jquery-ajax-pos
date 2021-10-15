@@ -1,0 +1,12 @@
+#tblItems thead th:nth-child(3),
+#tblItems tbody td:nth-child(3){
+    width: 70px;
+    text-align: center;
+}
+
+#tblItems thead th:nth-child(4),
+#tblItems tbody td:nth-child(4){
+    text-align: right;
+}
+
+/*# sourceMappingURL=/place-order.07f7e542.css.map */
