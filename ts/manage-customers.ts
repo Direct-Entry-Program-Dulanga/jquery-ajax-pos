@@ -12,99 +12,13 @@ let selectedPage = 1;
 let pageCount = 1;
 
 loadAllCustomers();
-/*  */
-
-/* load customer part */
-function loadAllCustomers(): void {
-
-    const http = new XMLHttpRequest();
-
-    http.onreadystatechange = () => {
-
-        if (http.readyState === http.DONE) {
-
-            if (http.status !== 200) {
-                alert("Failed to fetch customers, try again...!");
-                return;
-            }
-
-            totalCustomers = +(http.getResponseHeader('X-Total-Count'));
-            customers = JSON.parse(http.responseText);
-
-            $('#tbl-customers tbody tr').remove();
-
-            customers.forEach((c) => {
-                const rowHtml = `<tr>
-                 <td>${c.id}</td>
-                 <td>${c.name}</td>
-                 <td>${c.address}</td>
-                 <td><i class="fas fa-trash trash"></i></td>
-                 </tr>` ;
+/* API Calls */
 
 
-                $('#tbl-customers tbody').append(rowHtml);
-            });
+/* start up focus */
+$('#txt-id').trigger('focus');
 
-            initPagination();
-
-        }
-
-    };
-
-    // http://url?page=10&size=10
-    http.open('GET', CUSTOMERS_SERVICE_API + `?page=${selectedPage}&size=${PAGE_SIZE}`, true);
-
-    // 4. Setting headers, etc.
-
-    http.send();
-
-}
-
-function initPagination(): void {
-
-    pageCount = Math.ceil(totalCustomers / PAGE_SIZE);
-
-    showOrHidePagination();
-    if (pageCount === 1) return;
-
-    let html = `<li class="page-item"><a class="page-link" href="#!">«</a></li>`;
-
-    for (let i = 0; i < pageCount; i++) {
-        html += `<li class="page-item ${selectedPage === (i + 1) ? 'active' : ''}"><a class="page-link" href="javascript:void(0);">${i + 1}</a></li>`;
-    }
-
-    html += `<li class="page-item"><a class="page-link" href="javascript:void(0);">»</a></li>`;
-
-    $("ul.pagination").html(html);
-
-    if (selectedPage === 1) {
-        $(".page-item:first-child").addClass('disabled');
-    } else if (selectedPage === pageCount) {
-        $(".page-item:last-child").addClass('disabled');
-    }
-
-    $(".page-item:first-child").on('click', () => navigateToPage(selectedPage - 1));
-    $(".page-item:last-child").on('click', () => navigateToPage(selectedPage + 1));
-
-    $(".page-item:not(.page-item:first-child, .page-item:last-child)").on('click', function () {
-        navigateToPage(+$(this).text());
-    });
-
-}
-
-function navigateToPage(page: number): void {
-
-    if (page < 1 || page > pageCount) return;
-
-    selectedPage = page;
-    loadAllCustomers();
-
-}
-/* Pagination part */
-function showOrHidePagination(): void {
-    pageCount > 1 ? $(".pagination").show() : $('.pagination').hide();
-}
-
+/* Save part */
 $('#btn-save').on('click', (eventData) => {
     eventData.preventDefault();
 
@@ -150,36 +64,7 @@ $('#btn-save').on('click', (eventData) => {
     saveCustomer(new Customer(id, name, address));
 });
 
-function saveCustomer(customer: Customer): void {
-    const http = new XMLHttpRequest();
-
-    http.onreadystatechange = () => {
-
-        if (http.readyState !== http.DONE) return;
-
-        if (http.status !== 201) {
-            console.error(http.responseText);
-            alert("Failed to save the customer, retry");
-            return;
-        }
-
-        alert("Customer has been saved successfully");
-
-        totalCustomers++;
-        pageCount = Math.ceil(totalCustomers / PAGE_SIZE);
-
-        navigateToPage(pageCount);
-        $('#txt-id, #txt-name, #txt-address').val('');
-        $('#txt-id').trigger('focus');
-    };
-
-    http.open('POST', CUSTOMERS_SERVICE_API, true);
-
-    http.setRequestHeader('Content-Type', 'application/json');
-
-    http.send(JSON.stringify(customer));
-}
-
+/* Select part */
 $('#tbl-customers tbody').on('click', 'tr', function () {
 
     const id = $(this).find("td:first-child").text();
@@ -195,37 +80,6 @@ $('#tbl-customers tbody').on('click', 'tr', function () {
 
 });
 
-/* Update part */
-function updateCustomer(customer: Customer): void {
-    const http = new XMLHttpRequest();
-
-    http.onreadystatechange = () => {
-
-        if (http.readyState !== http.DONE) return;
-
-        if (http.status !== 204) {
-            alert("Failed to update the customer, retry");
-            return;
-        }
-
-        alert("Customer has been updated successfully");
-        // $("#tbl-customers tbody tr.selected").find("td:nth-child(2)").text($("#txt-name").val());
-        // $("#tbl-customers tbody tr.selected").find("td:nth-child(3)").text($("#txt-address").val());
-        $('#txt-id, #txt-name, #txt-address').val('');
-        $('#txt-id').trigger('focus');
-        $("#tbl-customers tbody tr.selected").removeClass('selected');
-        $('#txt-id').removeAttr('disabled');
-
-    };
-
-    http.open('PUT', CUSTOMERS_SERVICE_API, true);
-
-    http.setRequestHeader('Content-Type', 'application/json');
-
-    http.send(JSON.stringify(customer));
-
-}
-
 /* Delete part */
 $('#tbl-customers tbody').on('click', '.trash', function (eventData) {
     if (confirm('Are you sure to delete?')) {
@@ -233,34 +87,172 @@ $('#tbl-customers tbody').on('click', '.trash', function (eventData) {
     }
 });
 
-function deleteCustomer(id: string): void {
-    const http = new XMLHttpRequest();
-
-    http.onreadystatechange = () => {
-
-        if (http.readyState === http.DONE) {
-
-            if (http.status !== 204) {
-                alert("Failed to delete customer, try again...!");
-                return;
-            }
-
-            totalCustomers--;
-            pageCount = Math.ceil(totalCustomers / PAGE_SIZE);            
-            navigateToPage(pageCount);
-
-        }
-
-    };
-
-    http.open('DELETE', CUSTOMERS_SERVICE_API + `?id=${id}`, true);
-
-    http.send();
-}
-
-
 /* Clear button */
 $('#btn-clear').on('click', () => {
     $("#tbl-customers tbody tr.selected").removeClass('selected');
     $("#txt-id").removeAttr('disabled').trigger('focus');
 });
+
+
+/* Pagination part */
+function initPagination(): void {
+
+    pageCount = Math.ceil(totalCustomers / PAGE_SIZE);
+
+    showOrHidePagination();
+    if (pageCount === 1) return;
+
+    let html = `<li class="page-item"><a class="page-link" href="#!">«</a></li>`;
+
+    for (let i = 0; i < pageCount; i++) {
+        html += `<li class="page-item ${selectedPage === (i + 1) ? 'active' : ''}"><a class="page-link" href="javascript:void(0);">${i + 1}</a></li>`;
+    }
+
+    html += `<li class="page-item"><a class="page-link" href="javascript:void(0);">»</a></li>`;
+
+    $("ul.pagination").html(html);
+
+    if (selectedPage === 1) {
+        $(".page-item:first-child").addClass('disabled');
+    } else if (selectedPage === pageCount) {
+        $(".page-item:last-child").addClass('disabled');
+    }
+
+    $(".page-item:first-child").on('click', () => navigateToPage(selectedPage - 1));
+    $(".page-item:last-child").on('click', () => navigateToPage(selectedPage + 1));
+
+    $(".page-item:not(.page-item:first-child, .page-item:last-child)").on('click', function () {
+        navigateToPage(+$(this).text());
+    });
+
+}
+
+
+/* Navigation Page */
+function navigateToPage(page: number): void {
+
+    if (page < 1 || page > pageCount) return;
+
+    selectedPage = page;
+    loadAllCustomers();
+
+}
+
+/* Added Show and Hide Pagination */
+function showOrHidePagination(): void {
+    pageCount > 1 ? $(".pagination").show() : $('.pagination').hide();
+}
+
+/* load customer part */
+function loadAllCustomers(): void {
+
+    $.get(CUSTOMERS_SERVICE_API + `?page=${selectedPage}&size=${PAGE_SIZE}`).then((data) => {
+        customers = data;
+
+        $('#tbl-customers tbody tr').remove();
+
+        data.forEach((c) => {
+            const rowHtml = `<tr>                 
+                <td>${c.id}</td>
+                <td>${c.name}</td>
+                <td>${c.address}</td>
+                <td><i class="fas fa-trash trash"></i></td>
+            </tr>` ;
+
+
+            $('#tbl-customers tbody').append(rowHtml);
+        });
+
+        initPagination();
+    }).catch((err) => {
+        alert("Failed to fetch customer...!");
+        console.log(err);
+    }).always(() => {
+        console.log("This is working Always");
+    });
+}
+
+/* Save customer */
+function saveCustomer(customer: Customer): void {
+    http('POST', CUSTOMERS_SERVICE_API, function (){
+        this.onreadystatechange = () => {
+
+            if (this.readyState !== this.DONE) return;
+
+            if (this.status !== 201) {
+                console.error(this.responseText);
+                alert("Failed to save the customer, retry");
+                return;
+            }
+
+            alert("Customer has been saved successfully");
+
+            totalCustomers++;
+            pageCount = Math.ceil(totalCustomers / PAGE_SIZE);
+
+            navigateToPage(pageCount);
+            $('#txt-id, #txt-name, #txt-address').val('');
+            $('#txt-id').trigger('focus');
+        };
+    }, {'Content-Type': 'application/json'}, JSON.stringify(customer));
+}
+
+/* Update customer */
+function updateCustomer(customer: Customer): void {
+    http('PUT', CUSTOMERS_SERVICE_API, function () {
+        this.onreadystatechange = () => {
+
+            if (this.readyState !== this.DONE) return;
+
+            if (this.status !== 204) {
+                alert("Failed to update the customer, retry");
+                return;
+            }
+
+            alert("Customer has been updated successfully");
+            $("#tbl-customers tbody tr.selected").find("td:nth-child(2)").text($("#txt-name").val() as string);
+            $("#tbl-customers tbody tr.selected").find("td:nth-child(3)").text($("#txt-address").val() as string);
+            $('#txt-id, #txt-name, #txt-address').val('');
+            $('#txt-id').trigger('focus');
+            $("#tbl-customers tbody tr.selected").removeClass('selected');
+            $('#txt-id').removeAttr('disabled');
+
+        };
+    },  {'Content-Type': 'application/json'}, JSON.stringify(customer));
+}
+
+/* Delete customer */
+function deleteCustomer(id: string): void {
+
+    http('DELETE', CUSTOMERS_SERVICE_API + `?id=${id}`, function () {
+        if (this.readyState === this.DONE) {
+
+            if (this.status !== 204) {
+                alert("Failed to delete customer, try again...!");
+                return;
+            }
+        
+            totalCustomers--;
+            pageCount = Math.ceil(totalCustomers / PAGE_SIZE);            
+            navigateToPage(pageCount);
+        
+        }
+
+    })
+}
+
+
+function http(method: string, url: string, callFn: ((this: XMLHttpRequest, ev: Event) => any) | null, headers?: {[header: string]: string}, body?: any){
+    const http = new XMLHttpRequest();
+    http.onreadystatechange = callFn;
+
+    http.open(method, url, true);
+
+    if(headers){
+        for(const header in headers){
+            http.setRequestHeader(header,headers[header]);
+        }
+    }
+
+    http.send(body??"")
+}

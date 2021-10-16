@@ -347,7 +347,7 @@ process.chdir = function (dir) {
 process.umask = function () {
   return 0;
 };
-},{}],"../../../../node_modules/jquery/dist/jquery.js":[function(require,module,exports) {
+},{}],"node_modules/jquery/dist/jquery.js":[function(require,module,exports) {
 var global = arguments[3];
 var process = require("process");
 var define;
@@ -11259,78 +11259,12 @@ var totalCustomers = 0;
 var selectedPage = 1;
 var pageCount = 1;
 loadAllCustomers();
-/*  */
+/* API Calls */
 
-/* load customer part */
+/* start up focus */
 
-function loadAllCustomers() {
-  var http = new XMLHttpRequest();
-
-  http.onreadystatechange = function () {
-    if (http.readyState === http.DONE) {
-      if (http.status !== 200) {
-        alert("Failed to fetch customers, try again...!");
-        return;
-      }
-
-      totalCustomers = +http.getResponseHeader('X-Total-Count');
-      customers = JSON.parse(http.responseText);
-      (0, jquery_1.default)('#tbl-customers tbody tr').remove();
-      customers.forEach(function (c) {
-        var rowHtml = "<tr>\n                 <td>" + c.id + "</td>\n                 <td>" + c.name + "</td>\n                 <td>" + c.address + "</td>\n                 <td><i class=\"fas fa-trash trash\"></i></td>\n                 </tr>";
-        (0, jquery_1.default)('#tbl-customers tbody').append(rowHtml);
-      });
-      initPagination();
-    }
-  }; // http://url?page=10&size=10
-
-
-  http.open('GET', CUSTOMERS_SERVICE_API + ("?page=" + selectedPage + "&size=" + PAGE_SIZE), true); // 4. Setting headers, etc.
-
-  http.send();
-}
-
-function initPagination() {
-  pageCount = Math.ceil(totalCustomers / PAGE_SIZE);
-  showOrHidePagination();
-  if (pageCount === 1) return;
-  var html = "<li class=\"page-item\"><a class=\"page-link\" href=\"#!\">\xAB</a></li>";
-
-  for (var i = 0; i < pageCount; i++) {
-    html += "<li class=\"page-item " + (selectedPage === i + 1 ? 'active' : '') + "\"><a class=\"page-link\" href=\"javascript:void(0);\">" + (i + 1) + "</a></li>";
-  }
-
-  html += "<li class=\"page-item\"><a class=\"page-link\" href=\"javascript:void(0);\">\xBB</a></li>";
-  (0, jquery_1.default)("ul.pagination").html(html);
-
-  if (selectedPage === 1) {
-    (0, jquery_1.default)(".page-item:first-child").addClass('disabled');
-  } else if (selectedPage === pageCount) {
-    (0, jquery_1.default)(".page-item:last-child").addClass('disabled');
-  }
-
-  (0, jquery_1.default)(".page-item:first-child").on('click', function () {
-    return navigateToPage(selectedPage - 1);
-  });
-  (0, jquery_1.default)(".page-item:last-child").on('click', function () {
-    return navigateToPage(selectedPage + 1);
-  });
-  (0, jquery_1.default)(".page-item:not(.page-item:first-child, .page-item:last-child)").on('click', function () {
-    navigateToPage(+(0, jquery_1.default)(this).text());
-  });
-}
-
-function navigateToPage(page) {
-  if (page < 1 || page > pageCount) return;
-  selectedPage = page;
-  loadAllCustomers();
-}
-/* Pagination part */
-
-
-function showOrHidePagination() {
-  pageCount > 1 ? (0, jquery_1.default)(".pagination").show() : (0, jquery_1.default)('.pagination').hide();
-}
+(0, jquery_1.default)('#txt-id').trigger('focus');
+/* Save part */
 
 (0, jquery_1.default)('#btn-save').on('click', function (eventData) {
   eventData.preventDefault();
@@ -11371,31 +11305,7 @@ function showOrHidePagination() {
 
   saveCustomer(new Customer_1.Customer(id, name, address));
 });
-
-function saveCustomer(customer) {
-  var http = new XMLHttpRequest();
-
-  http.onreadystatechange = function () {
-    if (http.readyState !== http.DONE) return;
-
-    if (http.status !== 201) {
-      console.error(http.responseText);
-      alert("Failed to save the customer, retry");
-      return;
-    }
-
-    alert("Customer has been saved successfully");
-    totalCustomers++;
-    pageCount = Math.ceil(totalCustomers / PAGE_SIZE);
-    navigateToPage(pageCount);
-    (0, jquery_1.default)('#txt-id, #txt-name, #txt-address').val('');
-    (0, jquery_1.default)('#txt-id').trigger('focus');
-  };
-
-  http.open('POST', CUSTOMERS_SERVICE_API, true);
-  http.setRequestHeader('Content-Type', 'application/json');
-  http.send(JSON.stringify(customer));
-}
+/* Select part */
 
 (0, jquery_1.default)('#tbl-customers tbody').on('click', 'tr', function () {
   var id = (0, jquery_1.default)(this).find("td:first-child").text();
@@ -11407,47 +11317,144 @@ function saveCustomer(customer) {
   (0, jquery_1.default)("#tbl-customers tbody tr").removeClass('selected');
   (0, jquery_1.default)(this).addClass('selected');
 });
-/* Update part */
-
-function updateCustomer(customer) {
-  var http = new XMLHttpRequest();
-
-  http.onreadystatechange = function () {
-    if (http.readyState !== http.DONE) return;
-
-    if (http.status !== 204) {
-      alert("Failed to update the customer, retry");
-      return;
-    }
-
-    alert("Customer has been updated successfully"); // $("#tbl-customers tbody tr.selected").find("td:nth-child(2)").text($("#txt-name").val());
-    // $("#tbl-customers tbody tr.selected").find("td:nth-child(3)").text($("#txt-address").val());
-
-    (0, jquery_1.default)('#txt-id, #txt-name, #txt-address').val('');
-    (0, jquery_1.default)('#txt-id').trigger('focus');
-    (0, jquery_1.default)("#tbl-customers tbody tr.selected").removeClass('selected');
-    (0, jquery_1.default)('#txt-id').removeAttr('disabled');
-  };
-
-  http.open('PUT', CUSTOMERS_SERVICE_API, true);
-  http.setRequestHeader('Content-Type', 'application/json');
-  http.send(JSON.stringify(customer));
-}
 /* Delete part */
-
 
 (0, jquery_1.default)('#tbl-customers tbody').on('click', '.trash', function (eventData) {
   if (confirm('Are you sure to delete?')) {
     deleteCustomer((0, jquery_1.default)(eventData.target).parents("tr").find('td:first-child').text());
   }
 });
+/* Clear button */
+
+(0, jquery_1.default)('#btn-clear').on('click', function () {
+  (0, jquery_1.default)("#tbl-customers tbody tr.selected").removeClass('selected');
+  (0, jquery_1.default)("#txt-id").removeAttr('disabled').trigger('focus');
+});
+/* Pagination part */
+
+function initPagination() {
+  pageCount = Math.ceil(totalCustomers / PAGE_SIZE);
+  showOrHidePagination();
+  if (pageCount === 1) return;
+  var html = "<li class=\"page-item\"><a class=\"page-link\" href=\"#!\">\xAB</a></li>";
+
+  for (var i = 0; i < pageCount; i++) {
+    html += "<li class=\"page-item " + (selectedPage === i + 1 ? 'active' : '') + "\"><a class=\"page-link\" href=\"javascript:void(0);\">" + (i + 1) + "</a></li>";
+  }
+
+  html += "<li class=\"page-item\"><a class=\"page-link\" href=\"javascript:void(0);\">\xBB</a></li>";
+  (0, jquery_1.default)("ul.pagination").html(html);
+
+  if (selectedPage === 1) {
+    (0, jquery_1.default)(".page-item:first-child").addClass('disabled');
+  } else if (selectedPage === pageCount) {
+    (0, jquery_1.default)(".page-item:last-child").addClass('disabled');
+  }
+
+  (0, jquery_1.default)(".page-item:first-child").on('click', function () {
+    return navigateToPage(selectedPage - 1);
+  });
+  (0, jquery_1.default)(".page-item:last-child").on('click', function () {
+    return navigateToPage(selectedPage + 1);
+  });
+  (0, jquery_1.default)(".page-item:not(.page-item:first-child, .page-item:last-child)").on('click', function () {
+    navigateToPage(+(0, jquery_1.default)(this).text());
+  });
+}
+/* Navigation Page */
+
+
+function navigateToPage(page) {
+  if (page < 1 || page > pageCount) return;
+  selectedPage = page;
+  loadAllCustomers();
+}
+/* Added Show and Hide Pagination */
+
+
+function showOrHidePagination() {
+  pageCount > 1 ? (0, jquery_1.default)(".pagination").show() : (0, jquery_1.default)('.pagination').hide();
+}
+/* load customer part */
+
+
+function loadAllCustomers() {
+  jquery_1.default.get(CUSTOMERS_SERVICE_API + ("?page=" + selectedPage + "&size=" + PAGE_SIZE)).then(function (data) {
+    customers = data;
+    (0, jquery_1.default)('#tbl-customers tbody tr').remove();
+    data.forEach(function (c) {
+      var rowHtml = "<tr>                 \n                <td>" + c.id + "</td>\n                <td>" + c.name + "</td>\n                <td>" + c.address + "</td>\n                <td><i class=\"fas fa-trash trash\"></i></td>\n            </tr>";
+      (0, jquery_1.default)('#tbl-customers tbody').append(rowHtml);
+    });
+    initPagination();
+  }).catch(function (err) {
+    alert("Failed to fetch customer...!");
+    console.log(err);
+  }).always(function () {
+    console.log("This is working Always");
+  });
+}
+/* Save customer */
+
+
+function saveCustomer(customer) {
+  http('POST', CUSTOMERS_SERVICE_API, function () {
+    var _this = this;
+
+    this.onreadystatechange = function () {
+      if (_this.readyState !== _this.DONE) return;
+
+      if (_this.status !== 201) {
+        console.error(_this.responseText);
+        alert("Failed to save the customer, retry");
+        return;
+      }
+
+      alert("Customer has been saved successfully");
+      totalCustomers++;
+      pageCount = Math.ceil(totalCustomers / PAGE_SIZE);
+      navigateToPage(pageCount);
+      (0, jquery_1.default)('#txt-id, #txt-name, #txt-address').val('');
+      (0, jquery_1.default)('#txt-id').trigger('focus');
+    };
+  }, {
+    'Content-Type': 'application/json'
+  }, JSON.stringify(customer));
+}
+/* Update customer */
+
+
+function updateCustomer(customer) {
+  http('PUT', CUSTOMERS_SERVICE_API, function () {
+    var _this = this;
+
+    this.onreadystatechange = function () {
+      if (_this.readyState !== _this.DONE) return;
+
+      if (_this.status !== 204) {
+        alert("Failed to update the customer, retry");
+        return;
+      }
+
+      alert("Customer has been updated successfully");
+      (0, jquery_1.default)("#tbl-customers tbody tr.selected").find("td:nth-child(2)").text((0, jquery_1.default)("#txt-name").val());
+      (0, jquery_1.default)("#tbl-customers tbody tr.selected").find("td:nth-child(3)").text((0, jquery_1.default)("#txt-address").val());
+      (0, jquery_1.default)('#txt-id, #txt-name, #txt-address').val('');
+      (0, jquery_1.default)('#txt-id').trigger('focus');
+      (0, jquery_1.default)("#tbl-customers tbody tr.selected").removeClass('selected');
+      (0, jquery_1.default)('#txt-id').removeAttr('disabled');
+    };
+  }, {
+    'Content-Type': 'application/json'
+  }, JSON.stringify(customer));
+}
+/* Delete customer */
+
 
 function deleteCustomer(id) {
-  var http = new XMLHttpRequest();
-
-  http.onreadystatechange = function () {
-    if (http.readyState === http.DONE) {
-      if (http.status !== 204) {
+  http('DELETE', CUSTOMERS_SERVICE_API + ("?id=" + id), function () {
+    if (this.readyState === this.DONE) {
+      if (this.status !== 204) {
         alert("Failed to delete customer, try again...!");
         return;
       }
@@ -11456,19 +11463,23 @@ function deleteCustomer(id) {
       pageCount = Math.ceil(totalCustomers / PAGE_SIZE);
       navigateToPage(pageCount);
     }
-  };
-
-  http.open('DELETE', CUSTOMERS_SERVICE_API + ("?id=" + id), true);
-  http.send();
+  });
 }
-/* Clear button */
 
+function http(method, url, callFn, headers, body) {
+  var http = new XMLHttpRequest();
+  http.onreadystatechange = callFn;
+  http.open(method, url, true);
 
-(0, jquery_1.default)('#btn-clear').on('click', function () {
-  (0, jquery_1.default)("#tbl-customers tbody tr.selected").removeClass('selected');
-  (0, jquery_1.default)("#txt-id").removeAttr('disabled').trigger('focus');
-});
-},{"./dto/Customer":"ts/dto/Customer.ts","jquery":"../../../../node_modules/jquery/dist/jquery.js"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+  if (headers) {
+    for (var header in headers) {
+      http.setRequestHeader(header, headers[header]);
+    }
+  }
+
+  http.send(body !== null && body !== void 0 ? body : "");
+}
+},{"./dto/Customer":"ts/dto/Customer.ts","jquery":"node_modules/jquery/dist/jquery.js"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -11496,7 +11507,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "33403" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "36549" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
